@@ -53,6 +53,25 @@ function TitleDetails() {
     extractPrimitiveValue(movie?.aggregateRating) ??
     null
 
+  const getOverviewText = () => {
+    const candidates = [
+      movie?.overview,
+      movie?.description,
+      movie?.plot,
+      movie?.plotSummary,
+      movie?.synopsis,
+      movie?.storyline,
+      movie?.summary,
+    ]
+
+    const text = candidates
+      .filter((value) => typeof value === 'string' && value.trim())
+      .map((value) => value.trim())
+      .join('\n\n')
+
+    return text || 'No description available from the API.'
+  }
+
   const entries = movie
     ? Object.entries(movie).filter(([, value]) => {
         if (value == null) return false
@@ -116,9 +135,14 @@ function TitleDetails() {
 
               <div className='rounded-3xl border border-white/10 bg-white/5 p-6'>
                 <h2 className='text-2xl font-bold'>Overview</h2>
-                <p className='mt-3 leading-7 text-gray-300'>
-                  {movie.description || movie.plot || movie.plotSummary || 'No description available from the API.'}
-                </p>
+                <div className='mt-3 space-y-3 leading-7 text-gray-300'>
+                  {getOverviewText()
+                    .split(/\n\s*\n/)
+                    .filter(Boolean)
+                    .map((paragraph, index) => (
+                      <p key={`${paragraph.slice(0, 20)}-${index}`}>{paragraph}</p>
+                    ))}
+                </div>
               </div>
 
               {movie.genres && (
