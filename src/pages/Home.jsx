@@ -9,6 +9,7 @@ import {
   saveWatchlist,
   toggleWatchlistItem,
 } from '../utils/watchlist.js'
+import { fetchTitles } from '../utils/titles.js'
 
 const getTitleType = (item) => {
   const rawType = item?.titleType ?? item?.type ?? item?.titletype ?? ''
@@ -95,9 +96,7 @@ function Home() {
 
       setError('')
 
-      const response = await fetch(`https://api.imdbapi.dev/titles?pages=${nextLimit}`)
-      const data = await response.json()
-      const rawItems = Array.isArray(data) ? data : data?.results || data?.titles || []
+      const rawItems = await fetchTitles(nextLimit)
 
       const baseTitles = nextLimit > 10 ? rawTitlesRef.current : []
       const mergedTitles = nextLimit > 10 ? mergeUniqueTitles(baseTitles, rawItems) : rawItems

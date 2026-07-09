@@ -7,6 +7,7 @@ import {
   saveWatchlist,
   toggleWatchlistItem,
 } from '../utils/watchlist.js'
+import { fetchTitles } from '../utils/titles.js'
 
 function Search() {
   const navigate = useNavigate()
@@ -26,9 +27,7 @@ function Search() {
         setLoading(true)
         setError('')
 
-        const response = await fetch('https://api.imdbapi.dev/titles?pages=20')
-        const data = await response.json()
-        const rawItems = Array.isArray(data) ? data : data?.results || data?.titles || []
+        const rawItems = await fetchTitles(20)
 
         setTitles(rawItems)
       } catch (fetchError) {
