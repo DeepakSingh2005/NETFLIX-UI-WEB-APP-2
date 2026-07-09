@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Card from '../components/Card.jsx'
 import {
+  getTitleKey,
   hasInWatchlist,
   readWatchlist,
   saveWatchlist,
@@ -20,6 +21,10 @@ function Search() {
   const query = searchParams.get('query') || ''
 
   useEffect(() => {
+    setSearchText(query)
+  }, [query])
+
+  useEffect(() => {
     setWatchlist(readWatchlist())
 
     const loadTitles = async () => {
@@ -27,7 +32,11 @@ function Search() {
         setLoading(true)
         setError('')
 
+<<<<<<< HEAD
         const rawItems = await fetchTitles(20)
+=======
+        const { titles: rawItems } = await fetchTitles(20)
+>>>>>>> 115fcb1 (Install Tailwind Vite plugin)
 
         setTitles(rawItems)
       } catch (fetchError) {
@@ -101,27 +110,29 @@ function Search() {
           <div>
             <h1 className='mb-6 text-3xl font-bold text-white'>Search results for "{query}"</h1>
             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-              {results.map((movie) => (
-                <Card
-                  key={movie.id || movie.title}
-                  image={movie.primaryImage?.url || movie.image || ''}
-                  title={movie.primaryTitle || movie.title}
-                  rating={movie.rating ?? movie.aggregateRating}
-                  isSaved={hasInWatchlist(watchlist, movie)}
-                  onWatchlistToggle={() => {
-                    const updated = toggleWatchlistItem(watchlist, movie)
-                    setWatchlist(updated)
-                    saveWatchlist(updated)
-                  }}
-                  onClick={() => {
-                    const titleId = movie.id || movie.title
-                    const payload = JSON.stringify(movie)
-                    sessionStorage.setItem(`title-details:${titleId}`, payload)
-                    localStorage.setItem(`title-details:${titleId}`, payload)
-                    navigate(`/title/${titleId}`, { state: { movie } })
-                  }}
-                />
-              ))}
+              {results.map((movie) => {
+                const titleId = getTitleKey(movie)
+                return (
+                  <Card
+                    key={titleId}
+                    image={movie.primaryImage?.url || movie.image || ''}
+                    title={movie.primaryTitle || movie.title}
+                    rating={movie.rating ?? movie.aggregateRating}
+                    isSaved={hasInWatchlist(watchlist, movie)}
+                    onWatchlistToggle={() => {
+                      const updated = toggleWatchlistItem(watchlist, movie)
+                      setWatchlist(updated)
+                      saveWatchlist(updated)
+                    }}
+                    onClick={() => {
+                      const payload = JSON.stringify(movie)
+                      sessionStorage.setItem(`title-details:${titleId}`, payload)
+                      localStorage.setItem(`title-details:${titleId}`, payload)
+                      navigate(`/title/${titleId}`, { state: { movie } })
+                    }}
+                  />
+                )
+              })}
             </div>
           </div>
         )}

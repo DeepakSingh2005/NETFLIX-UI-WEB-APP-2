@@ -1,10 +1,13 @@
 import React from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import sampleTitles from '../data/sampleTitles.js'
+import { getTitleKey } from '../utils/watchlist.js'
 
 function TitleDetails() {
   const location = useLocation()
   const navigate = useNavigate()
   const { titleId } = useParams()
+
   const cachedMovie = titleId
     ? localStorage.getItem(`title-details:${titleId}`) ||
       sessionStorage.getItem(`title-details:${titleId}`)
@@ -19,7 +22,11 @@ function TitleDetails() {
     }
   }
 
-  const movie = location.state?.movie || parsedMovie
+  const fallbackMovie = titleId
+    ? sampleTitles.find((item) => getTitleKey(item) === titleId)
+    : null
+
+  const movie = location.state?.movie || parsedMovie || fallbackMovie
 
   const extractPrimitiveValue = (value) => {
     if (value == null) return null

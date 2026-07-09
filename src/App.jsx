@@ -12,6 +12,7 @@ import NotFound from './pages/404.jsx'
 function App() {
   const location = useLocation()
   const [isVisible, setIsVisible] = useState(false)
+  const [isOnline, setIsOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true))
 
   useEffect(() => {
     setIsVisible(false)
@@ -20,8 +21,33 @@ function App() {
     return () => cancelAnimationFrame(frame)
   }, [location.pathname])
 
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
   return (
     <div className='bg-gray-900 min-h-screen'>
+      <div className='fixed right-4 top-4 z-[60]'>
+        <div
+          className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium shadow-lg backdrop-blur ${
+            isOnline
+              ? 'border-emerald-400/30 bg-emerald-500/15 text-emerald-300'
+              : 'border-red-400/30 bg-red-500/15 text-red-300'
+          }`}
+        >
+          <span className={`h-2.5 w-2.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-red-400'}`} />
+          {isOnline ? 'Online' : 'Offline'}
+        </div>
+      </div>
       <Nevbar />
       <div className='pt-16'>
         <div
@@ -31,10 +57,10 @@ function App() {
           }`}
         >
           <Routes location={location}>
-            <Route path='/' element={<Navigate to='/browse/movies' replace />} />
+            <Route path='/home' element={<Navigate to='/browse/movies' replace />} />
             <Route path='/browse/:category' element={<Home />} />
             <Route path='/title/:titleId' element={<TitleDetails />} />
-            <Route path='/login' element={<Login />} />
+            <Route path='/' element={<Login />} />
             <Route path='/signup' element={<Signup />} />
             <Route path='/profile' element={<Profile />} />
             <Route path='/search' element={<Search />} />

@@ -10,7 +10,7 @@ function Login() {
         <p className='text-sm uppercase tracking-[0.35em] text-red-400'>Account</p>
         <h1 className='mt-4 text-3xl font-black'>Sign In</h1>
         <p className='mt-3 text-gray-300'>
-          This is a frontend-only login screen. It does not connect to any backend.
+          This is a frontend-only login screen
         </p>
 
         <form className='mt-8 space-y-5'>
@@ -44,6 +44,13 @@ function Login() {
             className='w-full rounded-2xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-500'
           >
             Sign In
+          </button>
+           <button
+            type='button'
+            onClick={() => navigate('/profile')}
+            className='w-full rounded-2xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-500'
+          >
+            Sign In as guest
           </button>
         </form>
 

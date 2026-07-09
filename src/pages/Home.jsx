@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Card from '../components/Card'
+import InfiniteScroll from 'react-infinite-scroll-component'
 import HeroCard from '../components/HeroCard'
 import {
   getTitleKey,
@@ -51,19 +52,18 @@ const mergeUniqueTitles = (existingTitles, incomingTitles) => {
 }
 
 function Home() {
+
   const navigate = useNavigate()
   const { category } = useParams()
   const requestInFlightRef = useRef(false)
-  const sentinelRef = useRef(null)
   const rawTitlesRef = useRef([])
-
+  const nextPageTokenRef = useRef(null)
   const [rawTitles, setRawTitles] = useState([])
   const [watchlist, setWatchlist] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState('')
   const [visibleCount, setVisibleCount] = useState(10)
-  const [limit, setLimit] = useState(10)
   const [hasMore, setHasMore] = useState(true)
 
   const selectedCategory = category || 'movies'
@@ -82,13 +82,13 @@ function Home() {
     saveWatchlist(updated)
   }
 
-  const loadTitles = useCallback(async (nextLimit = 10) => {
+  const loadTitles = useCallback(async () => {
     if (requestInFlightRef.current) return
 
     requestInFlightRef.current = true
 
     try {
-      if (nextLimit > 10) {
+      if (nextPageTokenRef.current) {
         setLoadingMore(true)
       } else {
         setLoading(true)
@@ -96,22 +96,30 @@ function Home() {
 
       setError('')
 
+<<<<<<< HEAD
       const rawItems = await fetchTitles(nextLimit)
 
       const baseTitles = nextLimit > 10 ? rawTitlesRef.current : []
       const mergedTitles = nextLimit > 10 ? mergeUniqueTitles(baseTitles, rawItems) : rawItems
+=======
+      const { titles: rawItems, nextPageToken } = await fetchTitles(10, nextPageTokenRef.current)
+      const mergedTitles = nextPageTokenRef.current ? mergeUniqueTitles(rawTitlesRef.current, rawItems) : rawItems
+      const isInitialLoad = rawTitlesRef.current.length === 0
+>>>>>>> 115fcb1 (Install Tailwind Vite plugin)
 
       rawTitlesRef.current = mergedTitles
       setRawTitles(mergedTitles)
-      setLimit(nextLimit)
-      setHasMore(rawItems.length >= nextLimit)
-      setVisibleCount((prev) =>
-        nextLimit > 10 ? Math.min(prev + 10, mergedTitles.length) : Math.min(nextLimit, mergedTitles.length),
-      )
+      nextPageTokenRef.current = nextPageToken
+      setHasMore(Boolean(nextPageToken) && rawItems.length > 0)
+      setVisibleCount((prev) => (
+        isInitialLoad
+          ? Math.min(10, mergedTitles.length)
+          : Math.min(prev + 10, mergedTitles.length)
+      ))
     } catch (err) {
       setRawTitles([])
       rawTitlesRef.current = []
-      setLimit(nextLimit)
+      nextPageTokenRef.current = null
       setHasMore(false)
       setVisibleCount(0)
       setError('Unable to load titles from the API right now. Please try again.')
@@ -129,41 +137,25 @@ function Home() {
 
   useEffect(() => {
     setWatchlist(readWatchlist())
-    loadTitles(10)
+    loadTitles()
   }, [loadTitles])
 
   useEffect(() => {
     setVisibleCount(10)
   }, [selectedCategory])
 
-  useEffect(() => {
-    if (!sentinelRef.current) return
+  const handleLoadMore = useCallback(async () => {
+    if (loading || loadingMore || requestInFlightRef.current) return
 
-    const handleIntersection = (entries) => {
-      const [entry] = entries
-      
-      if (!entry.isIntersecting || loading || loadingMore || !hasMore || requestInFlightRef.current) {
-        return
-      }
-
-      if (visibleCount < filteredTitles.length) {
-        setVisibleCount((prev) => Math.min(prev + 10, filteredTitles.length))
-        return
-      }
-
-      loadTitles(limit + 10)
+    if (visibleCount < filteredTitles.length) {
+      setVisibleCount((prev) => Math.min(prev + 10, filteredTitles.length))
+      return
     }
 
-    const observer = new IntersectionObserver(handleIntersection, {
-      root: null,
-      rootMargin: '100px',
-      threshold: 0.1,
-    })
+    if (!hasMore) return
 
-    observer.observe(sentinelRef.current)
-
-    return () => observer.disconnect()
-  }, [filteredTitles.length, hasMore, limit, loadTitles, loading, loadingMore, visibleCount])
+    await loadTitles()
+  }, [visibleCount, filteredTitles.length, hasMore, loadTitles, loading, loadingMore])
 
   return (
     <div className='min-h-screen bg-black'>
@@ -188,31 +180,47 @@ function Home() {
               {selectedCategory === 'series' ? 'Trending Series' : 'Trending Movies'}
             </h2>
 
-            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6'>
-              {visibleTitles.map((movie) => {
-                const titleId = getTitleKey(movie)
+            <InfiniteScroll
+              dataLength={visibleTitles.length}
+              next={handleLoadMore}
+              hasMore={visibleCount < filteredTitles.length || hasMore}
+              loader={
+                <div className='text-center text-white py-6'>
+                  <p>Loading more titles...</p>
+                </div>
+              }
+              endMessage={
+                <p style={{ textAlign: 'center' }} className='text-gray-300 py-6'>
+                  <b>No more movies</b>
+                </p>
+              }
+            >
+              <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6'>
+                {visibleTitles.map((movie) => {
+                  const titleId = getTitleKey(movie)
 
-                return (
-                  <Card
-                    key={titleId}
-                    image={movie.primaryImage?.url || movie.image?.url || movie.image}
-                    title={movie.primaryTitle || movie.title || 'Untitled'}
-                    rating={movie.rating ?? movie.aggregateRating}
-                    isSaved={hasInWatchlist(watchlist, movie)}
-                    onWatchlistToggle={() => toggleWatchlist(movie)}
-                    onClick={() => {
-                      const payload = JSON.stringify(movie)
-                      sessionStorage.setItem(`title-details:${titleId}`, payload)
-                      localStorage.setItem(`title-details:${titleId}`, payload)
+                  return (
+                    <Card
+                      key={titleId}
+                      image={movie.primaryImage?.url || movie.image?.url || movie.image}
+                      title={movie.primaryTitle || movie.title || 'Untitled'}
+                      rating={movie.rating ?? movie.aggregateRating}
+                      isSaved={hasInWatchlist(watchlist, movie)}
+                      onWatchlistToggle={() => toggleWatchlist(movie)}
+                      onClick={() => {
+                        const payload = JSON.stringify(movie)
+                        sessionStorage.setItem(`title-details:${titleId}`, payload)
+                        localStorage.setItem(`title-details:${titleId}`, payload)
 
-                      navigate(`/title/${titleId}`, {
-                        state: { movie },
-                      })
-                    }}
-                  />
-                )
-              })}
-            </div>
+                        navigate(`/title/${titleId}`, {
+                          state: { movie },
+                        })
+                      }}
+                    />
+                  )
+                })}
+              </div>
+            </InfiniteScroll>
 
             {filteredTitles.length === 0 && (
               <p className='mt-8 text-gray-300'>
@@ -220,15 +228,20 @@ function Home() {
               </p>
             )}
 
-            <div ref={sentinelRef} className='flex items-center justify-center py-12'>
+            <div className='flex items-center justify-center py-12'>
               {loadingMore ? (
                 <div className='flex items-center space-x-2'>
                   <div className='h-4 w-4 animate-spin rounded-full border-2 border-gray-600 border-t-white'></div>
                   <p className='text-sm font-medium text-gray-400'>Loading more titles...</p>
                 </div>
-              ) : hasMore && visibleCount >= filteredTitles.length ? (
-                <p className='text-sm font-medium text-gray-500'>Scroll for more titles</p>
-              ) : !hasMore && filteredTitles.length > 0 ? (
+              ) : (hasMore || visibleCount < filteredTitles.length) ? (
+                <button
+                  onClick={handleLoadMore}
+                  className='rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700'
+                >
+                  Load more
+                </button>
+              ) : filteredTitles.length > 0 ? (
                 <p className='text-sm font-medium text-gray-500'>No more titles to load</p>
               ) : null}
             </div>

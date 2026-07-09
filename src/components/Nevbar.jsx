@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Search from '../assets/search.svg'
+import proimg from '../assets/prologo.png'
 function Nevbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const navigate = useNavigate()
@@ -58,24 +59,15 @@ function Nevbar() {
           </form>
 
           <div className='ml-4 hidden items-center gap-3 md:flex'>
-            <Link
-              to='/login'
-              className='rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-gray-200 transition hover:bg-white/10 hover:text-white'
-            >
-              Login
-            </Link>
+            <img  className='h-10 w-12 cursor-pointer object-cover' src={proimg} alt="" />
             <Link
               to='/profile'
               className='rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-gray-200 transition hover:bg-white/10 hover:text-white'
             >
+              
               Profile
             </Link>
-            <Link
-              to='/signup'
-              className='rounded-full bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-500'
-            >
-              Sign Up
-            </Link>
+            
           </div>
 
         </div>
