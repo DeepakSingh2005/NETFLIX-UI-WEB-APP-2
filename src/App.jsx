@@ -13,6 +13,7 @@ function App() {
   const location = useLocation()
   const [isVisible, setIsVisible] = useState(false)
   const [isOnline, setIsOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true))
+  const isLoginPage = location.pathname === '/'
 
   useEffect(() => {
     setIsVisible(false)
@@ -48,7 +49,7 @@ function App() {
           {isOnline ? 'Online' : 'Offline'}
         </div>
       </div>
-      <Nevbar />
+      {!isLoginPage && <Nevbar />}
       <div className='pt-16'>
         <div
           key={location.pathname}

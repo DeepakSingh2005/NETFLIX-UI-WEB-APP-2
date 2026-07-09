@@ -27,20 +27,18 @@ function Nevbar() {
           </Link>
 
          
-          <div className='hidden md:flex gap-8'>
-            <Link to='/browse/movies' className='text-gray-300 hover:text-white transition duration-200 text-sm font-medium'>
+          <div className='hidden md:flex gap-10'>
+            <Link to='/browse/movies' className='text-gray-300 hover:text-white transition duration-200 text-m font-medium'>
               Home
             </Link>
-            <Link to='/browse/series' className='text-gray-300 hover:text-white transition duration-200 text-sm font-medium'>
+            <Link to='/browse/series' className='text-gray-300 hover:text-white transition duration-200 text-m font-medium'>
               Series
             </Link>
-            <Link to='/browse/movies' className='text-gray-300 hover:text-white transition duration-200 text-sm font-medium'>
+            <Link to='/browse/movies' className='text-gray-300 hover:text-white transition duration-200 text-m font-medium'>
               Films
             </Link>
             
-            <Link to='/profile' className='text-gray-300 hover:text-white transition duration-200 text-sm font-medium'>
-              Profile
-            </Link>
+            
           </div>
 
          
