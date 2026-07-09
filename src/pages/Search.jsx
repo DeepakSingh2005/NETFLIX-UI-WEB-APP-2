@@ -32,11 +32,7 @@ function Search() {
         setLoading(true)
         setError('')
 
-<<<<<<< HEAD
-        const rawItems = await fetchTitles(20)
-=======
         const { titles: rawItems } = await fetchTitles(20)
->>>>>>> 115fcb1 (Install Tailwind Vite plugin)
 
         setTitles(rawItems)
       } catch (fetchError) {

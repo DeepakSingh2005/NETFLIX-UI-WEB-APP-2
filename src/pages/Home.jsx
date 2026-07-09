@@ -96,16 +96,9 @@ function Home() {
 
       setError('')
 
-<<<<<<< HEAD
-      const rawItems = await fetchTitles(nextLimit)
-
-      const baseTitles = nextLimit > 10 ? rawTitlesRef.current : []
-      const mergedTitles = nextLimit > 10 ? mergeUniqueTitles(baseTitles, rawItems) : rawItems
-=======
       const { titles: rawItems, nextPageToken } = await fetchTitles(10, nextPageTokenRef.current)
-      const mergedTitles = nextPageTokenRef.current ? mergeUniqueTitles(rawTitlesRef.current, rawItems) : rawItems
       const isInitialLoad = rawTitlesRef.current.length === 0
->>>>>>> 115fcb1 (Install Tailwind Vite plugin)
+      const mergedTitles = nextPageTokenRef.current ? mergeUniqueTitles(rawTitlesRef.current, rawItems) : rawItems
 
       rawTitlesRef.current = mergedTitles
       setRawTitles(mergedTitles)
